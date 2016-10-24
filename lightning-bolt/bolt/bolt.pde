@@ -11,7 +11,7 @@ void setup() {
 void draw() {
   noStroke();
   frameRate(30);
-  fill(0);
+  fill(0, 99);
   rect(0, 0, width, height);  
   stroke(255);
   PVector mouse = new PVector(mouseX, mouseY);
@@ -21,11 +21,16 @@ void draw() {
   }
 
   //for(int i=1; i<13; i++) {
-  //  bolt.lightning(new PVector(100*i, 0), new PVector(100*i, height), 50, 20);
-  //  bolt.lightning(new PVector(0, 100*i), new PVector(width, 100*i), 50, 20);
+  //  bolt.lightning(new PVector(100*i, 0), mouse, 15, 20, 0);
+  //  bolt.lightning(new PVector(100*i, height), mouse, 15, 20, 0);
+  //}
+  
+  //for(int i=1; i<7; i++) {
+  //  bolt.lightning(new PVector(0, 100*i), mouse, 15, 20, 0);
+  //  bolt.lightning(new PVector(width, 100*i), mouse, 15, 20, 0);
   //}
 }
-
+//
 class Bolt {
   PVector start;
   PVector end;
