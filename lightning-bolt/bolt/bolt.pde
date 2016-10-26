@@ -1,7 +1,7 @@
 PVector center;
 
 void setup() {
-  size(1280, 720);
+  size(640, 360, P3D);
   smooth();
   background(0);
   center = new PVector(width/2, height/2);
@@ -15,19 +15,19 @@ void draw() {
   rect(0, 0, width, height);  
   stroke(255);
   PVector mouse = new PVector(mouseX, mouseY);
-  Bolt bolt = new Bolt(center, mouse, 15, 20);
+  Bolt bolt = new Bolt(15, 20);
   if (mousePressed) {
-    bolt.lightning(5);
+    bolt.lightning(center, mouse);
   }
 
   //for(int i=0; i<=13; i++) {
-  //  bolt.lightning(new PVector(100*i, 0), center, 15, 20, 0);
-  //  bolt.lightning(new PVector(100*i, height), center, 15, 20, 0);
+  //  bolt.lightning(new PVector(100*i, 0), center);
+  //  bolt.lightning(new PVector(100*i, height), center);
   //}
   
   //for(int i=1; i<7; i++) {
-  //  bolt.lightning(new PVector(0, 100*i), center, 15, 20, 0);
-  //  bolt.lightning(new PVector(width, 100*i), center, 15, 20, 0);
+  //  bolt.lightning(new PVector(0, 100*i), center);
+  //  bolt.lightning(new PVector(width, 100*i), center);
   //}
 }
 
@@ -38,18 +38,15 @@ class Bolt {
   int splits = 10;
   //noise is amount of offset at each point
   float noise = 20;
+  
+  Bolt() {
+  }
 
   //various methods, it is simple to figure out (i think)
-  Bolt(PVector start, PVector end) {
-    this.start = start;
-    this.end = end;
-  }
-
-  Bolt(PVector start, PVector end, int splits) {
-    this.start = start;
-    this.end = end;
+  Bolt(int splits, float noise) {
     this.splits = splits;
-  }
+    this.noise = noise;
+  }  
 
   Bolt(PVector start, PVector end, int splits, float noise) {
     this.start = start;
@@ -60,6 +57,10 @@ class Bolt {
 
   void lightning() {
     lightning(this.start, this.end, this.splits, this.noise, 0);
+  }
+  
+   void lightning(PVector start, PVector end) {
+    lightning(start, end, this.splits, this.noise, 0);
   }
 
   void lightning(float branches) {
