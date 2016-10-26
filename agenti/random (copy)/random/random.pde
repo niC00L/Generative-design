@@ -1,50 +1,28 @@
-// P_2_2_4_01.pde
-// 
-// Generative Gestaltung, ISBN: 978-3-87439-759-9
-// First Edition, Hermann Schmidt, Mainz, 2009
-// Hartmut Bohnacker, Benedikt Gross, Julia Laub, Claudius Lazzeroni
-// Copyright 2009 Hartmut Bohnacker, Benedikt Gross, Julia Laub, Claudius Lazzeroni
-//
-// http://www.generative-gestaltung.de
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-/**
- * limited diffusion aggregation 
- * 
- * KEYS
- * s                   : save png
- * p                   : save pdf
- */
+//* KEYS
+//* s                   : save png
+//* p                   : save pdf
+//*/
 
 import processing.pdf.*;
 import java.util.Calendar;
 
 boolean savePDF = false;
 
-int maxCount = 1000; //max count of the cirlces
+int maxCount = 500; //max count of the cirlces
 int currentCount = 1;
 float[] x = new float[maxCount];
 float[] y = new float[maxCount];
 float[] r = new float[maxCount]; // radius
 
 void setup() {
-  size(600,600);
+  size(600, 600);
   smooth();
   //frameRate(10);
 
   // first circlex
-  x[0] = width/2;
-  y[0] = height/2;
+  x[0] = 0;
+  y[0] = 0;
   r[0] = 10;
-  //r[0] = 400; 
 }
 
 void draw() {
@@ -58,43 +36,43 @@ void draw() {
 
   // create a radom set of parameters
   float newR = random(1, 7);
-  float newX = random(0+newR, width-newR);
-  float newY = random(0+newR, height-newR);
+  float newX = random(-width/2+newR, width/2-newR);
+  float newY = random(-height/2+newR, height/2-newR);
 
   float closestDist = 100000000;
   int closestIndex = 0;
   // which circle is the closest?
-  for(int i=0; i < currentCount; i++) {
-    float newDist = dist(newX,newY, x[i],y[i]);
+  for (int i=0; i < currentCount-1; i++) {
+    float newDist = dist(newX, newY, x[i], y[i]);
     if (newDist < closestDist) {
       closestDist = newDist;
-      closestIndex = i; 
-    } 
+      closestIndex = i;
+    }
   }
-
-  // show random position and line
-   //fill(230);
-   //ellipse(newX,newY,newR*2,newR*2); 
-   //line(newX,newY,x[closestIndex],y[closestIndex]);
 
   // aline it to the closest circle outline
   float angle = atan2(newY-y[closestIndex], newX-x[closestIndex]);
 
-  x[currentCount] = x[closestIndex] + cos(angle) * (r[closestIndex]+newR);
-  y[currentCount] = y[closestIndex] + sin(angle) * (r[closestIndex]+newR);
-  r[currentCount] = newR;
-  currentCount++;
-println(x, y);
-  // draw them
-  for (int i=0 ; i < currentCount-1; i++) {
-    stroke(0);    
-    
-    //original circle
-    bolt.lightning(new PVector(x[i],y[i]), new PVector(x[i+1], y[i+1]));
+  x[currentCount] = x[closestIndex] + cos(angle) * (r[closestIndex]);
+  y[currentCount] = y[closestIndex] + sin(angle) * (r[closestIndex]);
+  r[currentCount] = newR;  
+  if (currentCount<maxCount-1){
+    currentCount++;
   }
+  pushMatrix();
+  translate(width/2, height/2);
+  rotate(frameCount/100.0);
+  // draw them
+  for (int i=0; i < currentCount-1; i++) {
+    stroke(0);    
 
-  if (currentCount >= maxCount) noLoop();
+    //original circle
+    bolt.lightning(new PVector(x[i], y[i]), new PVector(x[i+1], y[i+1]));
+  }
+  popMatrix();
 
+  //if (currentCount-1 >= maxCount) noLoop();
+  
   if (savePDF) {
     savePDF = false;
     endRecord();
@@ -108,7 +86,7 @@ class Bolt {
   int splits = 10;
   //noise is amount of offset at each point
   float noise = 20;
-  
+
   Bolt() {
   }
 
@@ -128,8 +106,8 @@ class Bolt {
   void lightning() {
     lightning(this.start, this.end, this.splits, this.noise, 0);
   }
-  
-   void lightning(PVector start, PVector end) {
+
+  void lightning(PVector start, PVector end) {
     lightning(start, end, this.splits, this.noise, 0);
   }
 
@@ -181,7 +159,7 @@ class Bolt {
 
   IntList branchesPoints(float branches, int splits) {
     IntList points = new IntList();
-    for(int i=0; i<branches; i++) {      
+    for (int i=0; i<branches; i++) {      
       points.append((int)random(splits));
     }
     return points;
@@ -189,18 +167,18 @@ class Bolt {
 
   void lightning(PVector start, PVector end, int splits, float noise, float branches) {
     ArrayList<PVector> points = createPoints(start, end, splits, noise);
-    
+
     float boltLen = start.dist(end);
     float branchesPer = (float)branches/1000;
     //number of desired branches on bolt 
     branches = round(boltLen*branchesPer);    
     IntList branchesPoints = branchesPoints(branches, points.size());
-    
+
     for (int i=0; i<=points.size()-2; i++) {            
       PVector tempStart = points.get(i);
       PVector tempEnd = points.get(i+1);      
       line(tempStart.x, tempStart.y, tempEnd.x, tempEnd.y);     
-      
+
       if (branchesPoints.hasValue(i)) {
         PVector branchEnd = new PVector(tempEnd.x+10*random(-5, 5), tempEnd.y+10*random(-5, 5));
         lightning(tempStart, branchEnd, splits, noise, branches);
