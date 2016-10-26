@@ -8,7 +8,7 @@ import java.util.Calendar;
 
 boolean savePDF = false;
 
-int maxCount = 500; //max count of the cirlces
+int maxCount = 500; //max count of the points
 int currentCount = 1;
 float[] x = new float[maxCount];
 float[] y = new float[maxCount];
@@ -18,9 +18,8 @@ float[] r = new float[maxCount]; // radius
 void setup() {
   size(600, 600);
   smooth();
-  //frameRate(10);
 
-  // first circlex
+  // first points
   x[0] = 0;
   y[0] = 0;
   r[0] = 10;
@@ -30,7 +29,7 @@ void draw() {
   Bolt bolt = new Bolt(20, 20);
   frameRate(30);
   if (savePDF) beginRecord(PDF, timestamp()+".pdf");
-  background(255);
+  background(0);
 
   strokeWeight(0.5);
   //noFill();
@@ -42,7 +41,7 @@ void draw() {
 
   float closestDist = 100000000;
   int closestIndex = 0;
-  // which circle is the closest?
+  // which is the closest?
   for (int i=0; i < currentCount-1; i++) {
     float newDist = dist(newX, newY, x[i], y[i]);
     if (newDist < closestDist) {
@@ -57,24 +56,20 @@ void draw() {
   x[currentCount] = x[closestIndex] + cos(angle) * (r[closestIndex]);
   y[currentCount] = y[closestIndex] + sin(angle) * (r[closestIndex]);
   r[currentCount] = newR;  
-  speed[currentCount] = random(0,1);
+  speed[currentCount] = random(0,.8);
   if (currentCount<maxCount-1){
     currentCount++;
   }
   pushMatrix();
-  translate(width/2, height/2);
-  //rotate(frameCount/100.0);
-  // draw them
+  translate(width/2, height/2);  
   for (int i=0; i < currentCount-1; i++) {
-    stroke(0);    
-
+    //filter(BLUR, 0.8); 
+    stroke((speed[i]*1000)%255);
     PVector start = new PVector(x[i], y[i]);
     PVector end = new PVector(x[i+1], y[i+1]);
     bolt.lightning(start.rotate((frameCount/10.0)*speed[i]), end.rotate((frameCount/10.0)*speed[i+1]));
   }
   popMatrix();
-
-  //if (currentCount-1 >= maxCount) noLoop();
   
   if (savePDF) {
     savePDF = false;
