@@ -20,17 +20,17 @@ void draw() {
     bolt.lightning(5);
   }
 
-  //for(int i=1; i<13; i++) {
-  //  bolt.lightning(new PVector(100*i, 0), mouse, 15, 20, 0);
-  //  bolt.lightning(new PVector(100*i, height), mouse, 15, 20, 0);
+  //for(int i=0; i<=13; i++) {
+  //  bolt.lightning(new PVector(100*i, 0), center, 15, 20, 0);
+  //  bolt.lightning(new PVector(100*i, height), center, 15, 20, 0);
   //}
   
   //for(int i=1; i<7; i++) {
-  //  bolt.lightning(new PVector(0, 100*i), mouse, 15, 20, 0);
-  //  bolt.lightning(new PVector(width, 100*i), mouse, 15, 20, 0);
+  //  bolt.lightning(new PVector(0, 100*i), center, 15, 20, 0);
+  //  bolt.lightning(new PVector(width, 100*i), center, 15, 20, 0);
   //}
 }
-//
+
 class Bolt {
   PVector start;
   PVector end;
