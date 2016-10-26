@@ -12,6 +12,7 @@ int maxCount = 500; //max count of the cirlces
 int currentCount = 1;
 float[] x = new float[maxCount];
 float[] y = new float[maxCount];
+float[] speed = new float[maxCount];
 float[] r = new float[maxCount]; // radius
 
 void setup() {
@@ -56,18 +57,20 @@ void draw() {
   x[currentCount] = x[closestIndex] + cos(angle) * (r[closestIndex]);
   y[currentCount] = y[closestIndex] + sin(angle) * (r[closestIndex]);
   r[currentCount] = newR;  
+  speed[currentCount] = random(0,1);
   if (currentCount<maxCount-1){
     currentCount++;
   }
   pushMatrix();
   translate(width/2, height/2);
-  rotate(frameCount/100.0);
+  //rotate(frameCount/100.0);
   // draw them
   for (int i=0; i < currentCount-1; i++) {
     stroke(0);    
 
-    //original circle
-    bolt.lightning(new PVector(x[i], y[i]), new PVector(x[i+1], y[i+1]));
+    PVector start = new PVector(x[i], y[i]);
+    PVector end = new PVector(x[i+1], y[i+1]);
+    bolt.lightning(start.rotate((frameCount/10.0)*speed[i]), end.rotate((frameCount/10.0)*speed[i+1]));
   }
   popMatrix();
 
