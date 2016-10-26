@@ -48,7 +48,7 @@ void setup() {
 }
 
 void draw() {
-  Bolt bolt = new Bolt();
+  Bolt bolt = new Bolt(20, 20);
   frameRate(30);
   if (savePDF) beginRecord(PDF, timestamp()+".pdf");
   background(255);
