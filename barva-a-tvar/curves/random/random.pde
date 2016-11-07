@@ -1,5 +1,5 @@
 void setup() {
-  size(720, 720);
+  fullScreen();
   background(255);
   smooth();
 }
@@ -7,7 +7,7 @@ void setup() {
 void draw() {
   float x = width/2;
   float y = height/2;
-  int circle = 40;
+  int circle = 100;
   //frameRate(30);
   fill(255, 50);
   rect(0, 0, width, height);
