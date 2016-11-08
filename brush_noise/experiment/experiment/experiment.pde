@@ -1,19 +1,35 @@
 ArrayList<PVector> points = new ArrayList<PVector>();
+PImage jake;
 void setup() {
-  size(1280, 720);
-  background(0);
+  size(500, 500);
+  background(255);
   smooth();
+  jake = loadImage("jakejake.jpg"); 
 }
 
 void draw() {
-  noStroke();
- 
-  fill(255);
-  if (mousePressed) {
-  lines();
-  } else {
-    points = new ArrayList<PVector>();
-  }
+  image(jake, width/2-jake.width/2, height/2-jake.height/2);
+  loadPixels();
+  int iter = 0;
+  for (int i=0; i<pixels.length; i++){
+    for (int j=0; j<pixels.length; j++){      
+      int clr = color(get(i,j));
+      if (clr<20){
+        iter++;
+        if (iter%20 ==0){
+          println(i,j);
+          points.add(new PVector(i,j));
+        }
+      }
+    }
+  }    
+  
+  //noStroke();
+  background(0);
+  //fill(255);
+  //lines();
+  
+  noLoop();
 }
 
 void keyPressed() {
@@ -26,20 +42,10 @@ void keyPressed() {
   }
 }
 
-void circles() {
-  float x = noise(mouseX*frameCount)*100 +mouseX;
-  float y = noise(mouseY*frameCount)*100+mouseY;
-  float radius = (pmouseX*pmouseY-mouseX*mouseY)/100;
-  ellipse(x, y, radius, radius);
-}
-
 void lines() {
-  
     int radius = 5;
-    if (frameCount%10==0) {
-      PVector point = new PVector(mouseX, mouseY);
-      points.add(point);
-      //PVector point = points.get(i);
+    for (int i=0; i<points.size(); i++){
+      PVector point = points.get(i);
       ellipse(point.x, point.y, radius, radius);     
         stroke(255);
         strokeWeight(0);
@@ -50,7 +56,6 @@ void lines() {
         for (int j=points.size()-1; j>=points.size()-fn; j--) {
           PVector prev = points.get(j);
           line(prev.x, prev.y, point.x, point.y);
-        }
+        }   
     }
-  
 }
