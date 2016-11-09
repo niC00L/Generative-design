@@ -5,12 +5,18 @@ void setup() {
   smooth();
 }
 
+//LMB draws something different than RMB
+
 void draw() {
   noStroke();
  
-  fill(255);
-  if (mousePressed) {
-  lines();
+  if (mousePressed && (mouseButton == RIGHT)) {
+    fill(255,50);
+    circles();
+  }
+  if (mousePressed && (mouseButton == LEFT)) {
+    fill(255);
+    lines();
   } else {
     points = new ArrayList<PVector>();
   }
