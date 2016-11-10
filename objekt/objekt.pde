@@ -2,34 +2,16 @@ ArrayList<PVector> points = new ArrayList<PVector>();
 PImage jake;
 void setup() {
   size(500, 500);
-  background(255);
+  background(0);
   smooth();
-  jake = loadImage("jakejake.jpg"); 
 }
 
 void draw() {
-  image(jake, width/2-jake.width/2, height/2-jake.height/2);
-  loadPixels();
-  int iter = 0;
-  for (int i=0; i<pixels.length; i++){
-   for (int j=0; j<pixels.length; j++){      
-     int clr = get(i,j);
-     //if (clr<20){
-     //  iter++;
-     //  if (iter%20==0){
-     //    points.add(new PVector(i,j));
-     //  }
-     //}
-   }
-  }   
-  updatePixels();
-  
-  //noStroke();
-  background(0);
-  //fill(255);
-  //lines();
-  
-  noLoop();
+  stroke(random(255), random(255), random(255));
+if (mousePressed) {
+  points.add(new PVector(mouseX, mouseY));
+    lines();
+  }
 }
 
 void keyPressed() {
@@ -42,12 +24,15 @@ void keyPressed() {
   }
 }
 
+//class lines {
+  
+//}
+
 void lines() {
     int radius = 5;
     for (int i=0; i<points.size(); i++){
       PVector point = points.get(i);
       ellipse(point.x, point.y, radius, radius);     
-        stroke(255);
         strokeWeight(0);
         float fn = 5;
         if (points.size()<5){
