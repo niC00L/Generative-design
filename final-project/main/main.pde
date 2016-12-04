@@ -9,14 +9,12 @@ import ddf.minim.analysis.*;
 import ddf.minim.ugens.*;
 
 Minim minim;
-AudioPlayer in;
-//AudioInput in;
+//AudioPlayer in;
+AudioInput in;
 FFT fft;
-float frequency;
 int sampleRate = 44100;
 float [] max = new float [sampleRate/2];//array that contains the half of the sampleRate size, because FFT only reads the half of the sampleRate frequency. This array will be filled with amplitude values.
 float maximum;//the maximum amplitude of the max array
-float amplitude;
 
 ArrayList<Node> nodesCircle = new ArrayList<Node>();
 ArrayList<Node> nodesLine = new ArrayList<Node>();
@@ -33,9 +31,9 @@ void setup()
   background(0);
 
   minim = new Minim(this);
-  in = minim.loadFile("song.mp3");
-  in.play();
-  //in = minim.getLineIn();
+  //in = minim.loadFile("song.mp3");
+  //in.play();
+  in = minim.getLineIn(Minim.STEREO, 512);
   fft = new FFT(in.bufferSize(), in.sampleRate());
   
   nodesCircle = initNodesInCircle(50, 300);
@@ -48,7 +46,7 @@ ArrayList<Node> initNodesInCircle(int count, int radius) {
   ArrayList<Node> tempNodes = new ArrayList<Node>();
   PVector dirVector = new PVector(radius, 0);
   float angle = (float)360/count;  
-  for (int i = 0; i <= count; i++) {    
+  for (int i = 0; i < count; i++) {    
     tempNodes.add(new Node(dirVector.x, dirVector.y, 0, 0,0));
     dirVector.rotate(radians(angle));    
   }
@@ -59,59 +57,58 @@ ArrayList<Node> initNodesInLines(int xcount, int ycount) {
   ArrayList<Node> tempNodes = new ArrayList<Node>();
   float xgap = (float)width/xcount;
   float ygap = (float)height/ycount;
-  for (int y = 1; y<ycount; y++) {
-    for (int x = 1; x<xcount; x++) {      
+  for (int y = 1; y < ycount; y++) {
+    for (int x = 1; x < xcount; x++) {      
       tempNodes.add(new Node(width/2-x*xgap, height/2-y*ygap, 0, 0,0));
     }
   }
   return tempNodes;
 }
 
+
 void draw()
 {    
-  frequency();
-  amplitude = fft.getFreq(frequency);
+  float frequency = getFrequency();
+  float amplitude = fft.getFreq(frequency); 
+  
   noStroke();
   fill(0, 20);
   rect(0, 0, width, height);  
-  
-  pushMatrix();  
-    float spin = (float)(amplitude%20)/1000;
-    translate(width/2, height/2);
+  pushMatrix();
+  float spin;
+    translate(width/2, height/2);    
+    if(frequency < 200){
+      spin = (float)(amplitude%30)/1000;
+    } else {
+      spin = 0;
+    }
     if (key == 'c') {
-      if(frequency < 200){
-        rotate((frequency/200)+rotation);
-        rotation += 0.5;
-      }    
-      animateNodes(nodesCircle, spectrums, spin);
+      animateNodes(nodesCircle, spectrums, spin, frequency);
     } else if(key == 'l') {
-      animateNodes(nodesLine, spectrums, 0);
+      animateNodes(nodesLine, spectrums, 0, frequency);
     } else if(key == 'b') {
-      animateNodes(nodesCircle, spectrums, spin);
-      animateNodes(nodesLine, spectrums, 0);
+      animateNodes(nodesCircle, spectrums, spin, frequency);
+      animateNodes(nodesLine, spectrums, 0, frequency);
     } else {  
-      animateNodes(nodesCircle, spectrums, spin);
+      animateNodes(nodesCircle, spectrums, spin, frequency);
     }
   popMatrix();
 }
 
-void animateNodes(ArrayList<Node> nodes, float[] spectrum, float spin) {
+void animateNodes(ArrayList<Node> nodes, float[] spectrum, float spin, float frequency) {
+  float amplitude = fft.getFreq(frequency);
    for (int i = 0; i<nodes.size(); i++) {
     int fn = i%(spectrum.length-1);
     if (spectrum[fn] < frequency && frequency < spectrum[fn+1]) {
-      fill(amplitude%360, 100, 100);
-      nodes.get(i).setSpeed(amplitude/100);
-      nodes.get(i).setWide(amplitude/8);
-      nodes.get(i).spin(spin);
-    } 
+      //nodes.get(i).setColor(color(amplitude%360, 100, 100));
+      //nodes.get(i).setSpeed(amplitude/100);
+      //nodes.get(i).setWide(20);
+      //nodes.get(i).spin(spin);
+    }
+    nodes.get(i).setColor(360);
+    nodes.get(i).setWide(20);
+    nodes.get(i).setSpeed(1);
     nodes.get(i).animate();
-  }
-}
-
-void spectr() {
-  for (int i = 0; i < fft.specSize(); i++)
-  {
-    line(i, height, i, height - fft.getBand(i)*4);
   }
 }
 
@@ -121,6 +118,7 @@ class Node {
   PVector target;
   float speed;
   PVector position;
+  color fill;
 
   Node(float x, float y, float wide) {
     this.start = new PVector(x, y);
@@ -158,8 +156,13 @@ class Node {
   void setSpeed(float speed) {
     this.speed = speed;
   }
+  
+  void setColor(color fill) {
+    this.fill = fill;
+  }
 
   void render() {
+    fill(this.fill);
     PVector start = new PVector();
     start.x = this.position.x-(wide/2);
     start.y = this.position.y-(wide/2);
@@ -167,13 +170,18 @@ class Node {
   }
 
   void animate() {
+    fill(this.fill);
     float dist = this.position.dist(this.target);
-    if (dist < this.wide) {
+    println(dist);
+    if (dist <= this.wide) {
       PVector temp = this.start;
       this.start = this.target;
-      this.target = temp;
+      this.target = temp;      
     }
+    
     PVector dirVector = new PVector((this.target.x - this.start.x), (this.target.y - this.start.y)).normalize();
+    println(this.start, this.target);
+    println(dirVector);
     this.position.x += dirVector.x*speed;
     this.position.y += dirVector.y*speed;
     ellipse(this.position.x, this.position.y, wide, wide);
@@ -186,7 +194,8 @@ class Node {
   }
 }
 
-void frequency() {
+float getFrequency() {
+  float frequency = 0;
   fft.forward(in.left);
   for (int f=0; f<sampleRate/2; f++) { //analyses the amplitude of each frequency analysed, between 0 and 22050 hertz
     max[f]=fft.getFreq(float(f)); //each index is correspondent to a frequency and contains the amplitude value
@@ -198,6 +207,7 @@ void frequency() {
       frequency = i;
     }
   }
+  return frequency;
 }
 
 void keyPressed() {
