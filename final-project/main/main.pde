@@ -1,19 +1,30 @@
+// BUTTONS
+//S - save frame
+//L - nodes sorted in lines
+//C - nodes sorted in circles
+//B - nodes both in circles and lines
+
 import ddf.minim.*;
 import ddf.minim.analysis.*;
 import ddf.minim.ugens.*;
 
 Minim minim;
-AudioInput in;
+AudioPlayer in;
+//AudioInput in;
 FFT fft;
 float frequency;
-int sampleRate = 44100;//sampleRate of 44100
+int sampleRate = 44100;
 float [] max = new float [sampleRate/2];//array that contains the half of the sampleRate size, because FFT only reads the half of the sampleRate frequency. This array will be filled with amplitude values.
 float maximum;//the maximum amplitude of the max array
 float amplitude;
 
-ArrayList<Square> squares = new ArrayList<Square>();
-int [] octaves = new int []{16, 32, 512, 2048, 8192, 16384, 32768};
-int [] spectrum = new int []{60, 230, 910, 4000, 14000};
+ArrayList<Node> nodesCircle = new ArrayList<Node>();
+ArrayList<Node> nodesLine = new ArrayList<Node>();
+
+float [] octaves = new float []{16, 32, 512, 2048, 8192, 16384, 32768};
+float [] spectrums = new float []{60, 230, 910, 4000, 14000};
+
+float rotation = 0.0;
 
 void setup()
 {
@@ -22,59 +33,79 @@ void setup()
   background(0);
 
   minim = new Minim(this);
-  in = minim.getLineIn();
+  in = minim.loadFile("song.mp3");
+  in.play();
+  //in = minim.getLineIn();
   fft = new FFT(in.bufferSize(), in.sampleRate());
   
-  initSquaresInCircle(50, 300);
-  initSquaresInCircle(30, 200);
+  nodesCircle = initNodesInCircle(50, 300);
+  nodesCircle.addAll(initNodesInCircle(30, 200));
   
-  //initSquaresInLines(30, 20);
+  nodesLine = initNodesInLines(20, 10);
 }
 
-void initSquaresInCircle(int count, int radius) {
+ArrayList<Node> initNodesInCircle(int count, int radius) {
+  ArrayList<Node> tempNodes = new ArrayList<Node>();
   PVector dirVector = new PVector(radius, 0);
   float angle = (float)360/count;  
   for (int i = 0; i <= count; i++) {    
-    squares.add(new Square(dirVector.x, dirVector.y, 0, 0,0));
+    tempNodes.add(new Node(dirVector.x, dirVector.y, 0, 0,0));
     dirVector.rotate(radians(angle));    
   }
+  return tempNodes;
 }
 
-void initSquaresInLines(int xcount, int ycount) {
-  float xgap = width/xcount;
-  float ygap = height/ycount;
+ArrayList<Node> initNodesInLines(int xcount, int ycount) {
+  ArrayList<Node> tempNodes = new ArrayList<Node>();
+  float xgap = (float)width/xcount;
+  float ygap = (float)height/ycount;
   for (int y = 1; y<ycount; y++) {
     for (int x = 1; x<xcount; x++) {      
-      squares.add(new Square(width/2-x*xgap, height/2-y*ygap, 0, 0,0));
+      tempNodes.add(new Node(width/2-x*xgap, height/2-y*ygap, 0, 0,0));
     }
   }
+  return tempNodes;
 }
 
 void draw()
-{  
-  float amplitude = fft.getFreq(frequency);
+{    
   frequency();
+  amplitude = fft.getFreq(frequency);
   noStroke();
   fill(0, 20);
   rect(0, 0, width, height);  
   
-  println(frameCount/100.0);
   pushMatrix();  
-  translate(width/2, height/2);
-  //rotate((frameCount/200.0));
-  rotate((amplitude/300.0)*(frameCount/100.0));
-  for (int i = 0; i<squares.size(); i++) {
+    float spin = (float)(amplitude%20)/1000;
+    translate(width/2, height/2);
+    if (key == 'c') {
+      if(frequency < 200){
+        rotate((frequency/200)+rotation);
+        rotation += 0.5;
+      }    
+      animateNodes(nodesCircle, spectrums, spin);
+    } else if(key == 'l') {
+      animateNodes(nodesLine, spectrums, 0);
+    } else if(key == 'b') {
+      animateNodes(nodesCircle, spectrums, spin);
+      animateNodes(nodesLine, spectrums, 0);
+    } else {  
+      animateNodes(nodesCircle, spectrums, spin);
+    }
+  popMatrix();
+}
+
+void animateNodes(ArrayList<Node> nodes, float[] spectrum, float spin) {
+   for (int i = 0; i<nodes.size(); i++) {
     int fn = i%(spectrum.length-1);
     if (spectrum[fn] < frequency && frequency < spectrum[fn+1]) {
       fill(amplitude%360, 100, 100);
-      squares.get(i).setSpeed(amplitude/100);
-      squares.get(i).setWide(amplitude/8);
+      nodes.get(i).setSpeed(amplitude/100);
+      nodes.get(i).setWide(amplitude/8);
+      nodes.get(i).spin(spin);
     } 
-    //fill(360);
-    //squares.get(i).setWide(10);
-    squares.get(i).animate();
+    nodes.get(i).animate();
   }
-  popMatrix();
 }
 
 void spectr() {
@@ -84,45 +115,27 @@ void spectr() {
   }
 }
 
-void octaves() {
-  for (int i = 1; i < octaves.length; i++) {
-    if (frequency >= octaves[i-1] && frequency <= octaves[i])
-      squares.get(i).setWide(amplitude);
-    squares.get(i).render();
-    squares.get(i).setWide(0);
-  }
-}
-
-void spectrum() {
-  for (int i = 1; i < spectrum.length; i++) {
-    if (frequency >= spectrum[i-1] && frequency <= spectrum[i])
-      squares.get(i).setWide(amplitude);
-    squares.get(i).render();
-    squares.get(i).setWide(0);
-  }
-}
-
-class Square {
+class Node {
   PVector start;
   float wide;
   PVector target;
   float speed;
   PVector position;
 
-  Square(float x, float y, float wide) {
+  Node(float x, float y, float wide) {
     this.start = new PVector(x, y);
     this.position = new PVector(x, y);
     this.wide = wide;
   }
 
-  Square(float x, float y, float wide, float targetX, float targetY) {    
+  Node(float x, float y, float wide, float targetX, float targetY) {    
     this.start = new PVector(x, y);
     this.position = new PVector(x, y);
     this.wide = wide;
     this.target = new PVector(targetX, targetY);
   }
 
-  Square(float x, float y, float wide, float targetX, float targetY, float speed) {    
+  Node(float x, float y, float wide, float targetX, float targetY, float speed) {    
     this.start = new PVector(x, y);
     this.position = new PVector(x, y);
     this.wide = wide;
@@ -150,13 +163,12 @@ class Square {
     PVector start = new PVector();
     start.x = this.position.x-(wide/2);
     start.y = this.position.y-(wide/2);
-    //rect(start.x, start.y, wide, wide);
     ellipse(start.x, start.y, wide, wide);
   }
 
   void animate() {
     float dist = this.position.dist(this.target);
-    if (dist < 1) {
+    if (dist < this.wide) {
       PVector temp = this.start;
       this.start = this.target;
       this.target = temp;
@@ -165,6 +177,12 @@ class Square {
     this.position.x += dirVector.x*speed;
     this.position.y += dirVector.y*speed;
     ellipse(this.position.x, this.position.y, wide, wide);
+  }
+  
+  void spin(float speed) {
+    this.position.rotate(speed);
+    this.target.rotate(speed);
+    this.start.rotate(speed);
   }
 }
 
@@ -175,7 +193,7 @@ void frequency() {
   }
   maximum=max(max);//get the maximum value of the max array in order to find the peak of volume
 
-  for (int i=0; i <max.length; i++) {// read each frequency in order to compare with the peak of volume
+  for (int i=0; i < max.length; i++) {// read each frequency in order to compare with the peak of volume
     if (max[i] == maximum) {//if the value is equal to the amplitude of the peak, get the index of the array, which corresponds to the frequency
       frequency = i;
     }
@@ -185,7 +203,7 @@ void frequency() {
 void keyPressed() {
   if (key == 's') {
     saveFrame("frame#####" + ".png");
-  }
+  }  
 }
 
 void stop()
