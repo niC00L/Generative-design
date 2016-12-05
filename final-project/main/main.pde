@@ -16,16 +16,26 @@ int sampleRate = 44100;
 float [] max = new float [sampleRate/2];//array that contains the half of the sampleRate size, because FFT only reads the half of the sampleRate frequency. This array will be filled with amplitude values.
 float maximum;//the maximum amplitude of the max array
 
-ArrayList<Node> nodesCircle = new ArrayList<Node>();
-ArrayList<Node> nodesLine = new ArrayList<Node>();
+ArrayList<NodesGroup> nodesCircle = new ArrayList<NodesGroup>();
+ArrayList<NodesGroup> nodesLine = new ArrayList<NodesGroup>();
 
-float [] octaves = new float []{16, 32, 512, 2048, 8192, 16384, 32768};
+//float [] octaves = new float []{16, 32, 512, 2048, 8192, 16384, 32768};
 float [] spectrums = new float []{60, 230, 910, 4000, 14000};
 
 float rotation = 0.0;
 
+//calculate width from milimeters
+float dpi = 300;
+float a4_w = 297;
+float a4_h = 210;
+float mm2px(float mm_value, float dpi) {
+  return mm_value/25.4*dpi;
+}
+
 void setup()
 {
+  int w = ceil(mm2px(a4_w, dpi));
+  int h = ceil(mm2px(a4_h, dpi));
   size(800, 600);
   colorMode(HSB, 360, 100, 100);
   background(0);
@@ -35,80 +45,133 @@ void setup()
   //in.play();
   in = minim.getLineIn(Minim.STEREO, 512);
   fft = new FFT(in.bufferSize(), in.sampleRate());
-  
-  nodesCircle = initNodesInCircle(50, 300);
-  nodesCircle.addAll(initNodesInCircle(30, 200));
-  
-  nodesLine = initNodesInLines(20, 10);
+
+  nodesCircle = initNodeGroupsInCircle(52, 300, spectrums.length);
+  //nodesCircle.addAll(initNodesInCircle(32, 200, spectrums.length));
+  nodesLine = initNodeGroupsInLines(20, 10, spectrums.length);
 }
 
-ArrayList<Node> initNodesInCircle(int count, int radius) {
-  ArrayList<Node> tempNodes = new ArrayList<Node>();
+ArrayList<NodesGroup> initNodeGroupsInCircle(int count, int radius, int groups) {
+  ArrayList<NodesGroup> tempNodes = new ArrayList<NodesGroup>();  
   PVector dirVector = new PVector(radius, 0);
-  float angle = (float)360/count;  
-  for (int i = 0; i < count; i++) {    
-    tempNodes.add(new Node(dirVector.x, dirVector.y, 0, 0,0));
-    dirVector.rotate(radians(angle));    
-  }
-  return tempNodes;
-}
-
-ArrayList<Node> initNodesInLines(int xcount, int ycount) {
-  ArrayList<Node> tempNodes = new ArrayList<Node>();
-  float xgap = (float)width/xcount;
-  float ygap = (float)height/ycount;
-  for (int y = 1; y < ycount; y++) {
-    for (int x = 1; x < xcount; x++) {      
-      tempNodes.add(new Node(width/2-x*xgap, height/2-y*ygap, 0, 0,0));
+  float angle = (float)360/(count/groups);  
+  for (int g = 0; g < groups; g++) {
+    NodesGroup nodeGroup = new NodesGroup();
+    for (int i = 0; i < ceil(count/groups); i++) {    
+      nodeGroup.add(new Node(dirVector.x, dirVector.y, 0, 0));
+      dirVector.rotate(radians(angle));
     }
+    tempNodes.add(nodeGroup);
   }
   return tempNodes;
 }
 
+ArrayList<NodesGroup> initNodeGroupsInLines(int xcount, int ycount, int groups) {
+  ArrayList<NodesGroup> tempNodes = new ArrayList<NodesGroup>();  
+  float xgap = (float)width/(xcount/groups);
+  float ygap = (float)height/(ycount/groups);
+  println(xcount/groups);
+  println(ycount/groups);
+  for (int g = 0; g < groups; g++) {
+    NodesGroup nodeGroup = new NodesGroup();
+    for (int y = 1; y <= ycount/groups; y++) {
+      for (int x = 1; x <= xcount/groups; x++) {      
+        nodeGroup.add(new Node(width/2-x*xgap, height/2-y*ygap, 0,0));
+      }
+    }
+    tempNodes.add(nodeGroup);
+  }
+  return tempNodes;
+}
 
 void draw()
 {    
   float frequency = getFrequency();
   float amplitude = fft.getFreq(frequency); 
-  
+
   noStroke();
   fill(0, 20);
   rect(0, 0, width, height);  
   pushMatrix();
   float spin;
-    translate(width/2, height/2);    
-    if(frequency < 200){
-      spin = (float)(amplitude%30)/1000;
-    } else {
-      spin = 0;
-    }
-    if (key == 'c') {
-      animateNodes(nodesCircle, spectrums, spin, frequency);
-    } else if(key == 'l') {
-      animateNodes(nodesLine, spectrums, 0, frequency);
-    } else if(key == 'b') {
-      animateNodes(nodesCircle, spectrums, spin, frequency);
-      animateNodes(nodesLine, spectrums, 0, frequency);
-    } else {  
-      animateNodes(nodesCircle, spectrums, spin, frequency);
-    }
+  translate(width/2, height/2);    
+  if (frequency < 200) {
+    spin = (float)(amplitude%30)/1000;
+  } else {
+    spin = 0;
+  }
+  if (key == 'c') {
+    animateGroups(nodesCircle, spectrums, spin, frequency);
+  } else if (key == 'l') {
+    animateGroups(nodesLine, spectrums, 0, frequency);
+  //} else if (key == 'b') {
+  //  animateGroups(nodesCircle, spectrums, spin, frequency);
+  } else {  
+    animateGroups(nodesCircle, spectrums, spin, frequency);
+  }
   popMatrix();
 }
 
-void animateNodes(ArrayList<Node> nodes, float[] spectrum, float spin, float frequency) {
-  float amplitude = fft.getFreq(frequency);
-   for (int i = 0; i<nodes.size(); i++) {
-    int fn = i%(spectrum.length-1);
-    if (spectrum[fn] < frequency && frequency < spectrum[fn+1]) {
-      //nodes.get(i).setColor(color(amplitude%360, 100, 100));
-      //nodes.get(i).setSpeed(amplitude/100);
-      //nodes.get(i).setWide(20);
-      //nodes.get(i).spin(spin);
+void animateGroups(ArrayList<NodesGroup> groups, float[] spectrum, float spin, float frequency) {
+  float amplitude = fft.getFreq(frequency);  
+  for (int i = 0; i < groups.size()-1; i++) {
+    if (spectrum[i] < frequency && frequency < spectrum[i+1]) {
+      groups.get(i).setValues(color(amplitude%360, 100, 100), amplitude/100, amplitude/8, spin);
     }
-    nodes.get(i).setColor(360);
-    nodes.get(i).setWide(20);
-    nodes.get(i).setSpeed(1);
-    nodes.get(i).animate();
+    groups.get(i).render();
+  }
+} 
+
+class NodesGroup {
+  ArrayList<Node> nodes;
+
+  NodesGroup() {
+    this.nodes = new ArrayList<Node>();
+  }
+
+  NodesGroup(ArrayList<Node> nodeGroup) {
+    this.nodes = nodeGroup;
+  }
+  
+  void add(Node node) {
+    this.nodes.add(node);
+  }
+  
+  Node get(int i) {
+    return this.nodes.get(i);
+  }
+  
+  int size() {
+    return this.nodes.size();
+  }
+
+  void setValues(color c, float speed, float wide, float spin) {
+    for (int i = 0; i < this.nodes.size(); i++) {
+      nodes.get(i).setColor(c);
+      nodes.get(i).setSpeed(speed);
+      nodes.get(i).setWide(wide);
+      nodes.get(i).spin(spin);      
+    }
+  }
+  
+  void render() {
+    for (int i = 0; i < this.nodes.size(); i++) {
+      nodes.get(i).animate();
+      nodes.get(i).render();
+    }
+  }
+
+  void syncNodes() {
+    PVector target = this.nodes.get(0).target;
+    for (int i = 0; i < this.nodes.size(); i++) {
+      if (this.nodes.get(i).target != target) {
+        return;
+      }
+    }
+    for (int i = 0; i < this.nodes.size(); i++) {
+      PVector pos = this.nodes.get(i).start;
+      this.nodes.get(i).setPosition(pos);
+    }
   }
 }
 
@@ -120,31 +183,23 @@ class Node {
   PVector position;
   color fill;
 
-  Node(float x, float y, float wide) {
-    this.start = new PVector(x, y);
+  //init node in position
+  Node(float x, float y) {
+    this.start = new PVector((int)x, (int)y);
     this.position = new PVector(x, y);
-    this.wide = wide;
+  }
+  //init node in position with target
+  Node(float x, float y, float targetX, float targetY) {    
+    this.start = new PVector((int)x, (int)y);
+    this.position = new PVector(x, y);
+    this.target = new PVector((int)targetX, (int)targetY);
   }
 
-  Node(float x, float y, float wide, float targetX, float targetY) {    
-    this.start = new PVector(x, y);
-    this.position = new PVector(x, y);
-    this.wide = wide;
-    this.target = new PVector(targetX, targetY);
-  }
-
-  Node(float x, float y, float wide, float targetX, float targetY, float speed) {    
-    this.start = new PVector(x, y);
-    this.position = new PVector(x, y);
-    this.wide = wide;
-    this.target = new PVector(targetX, targetY);
-    this.speed = speed;
-  }
-
+  //set stuff
   void setWide(float wide) {
     this.wide = wide;
   }
-  
+
   void setPosition(PVector position) {
     this.position = position;
   }
@@ -156,37 +211,42 @@ class Node {
   void setSpeed(float speed) {
     this.speed = speed;
   }
-  
+
   void setColor(color fill) {
     this.fill = fill;
   }
 
-  void render() {
-    fill(this.fill);
-    PVector start = new PVector();
-    start.x = this.position.x-(wide/2);
-    start.y = this.position.y-(wide/2);
-    ellipse(start.x, start.y, wide, wide);
-  }
-
-  void animate() {
-    fill(this.fill);
-    float dist = this.position.dist(this.target);
-    println(dist);
-    if (dist <= this.wide) {
-      PVector temp = this.start;
-      this.start = this.target;
-      this.target = temp;      
-    }
-    
-    PVector dirVector = new PVector((this.target.x - this.start.x), (this.target.y - this.start.y)).normalize();
-    println(this.start, this.target);
-    println(dirVector);
-    this.position.x += dirVector.x*speed;
-    this.position.y += dirVector.y*speed;
+  //render still nodes
+  void render() {    
+    fill(this.fill); //each node can have different fill
     ellipse(this.position.x, this.position.y, wide, wide);
   }
-  
+
+  //default value for animate
+  void animate() {
+    animate(false);
+  }
+
+  //animate node
+  void animate(boolean back) {
+    int dist = (int)this.position.dist(this.target);    //distance from node to its target
+    if (dist <= this.wide) {  //if node reaches target do something
+      if (back) {  //if back is true, move node backward
+        PVector temp = this.start.copy();  
+        this.start = this.target.copy();
+        this.position = this.target.copy();
+        this.target = temp;
+      } else {   //if back is false, teleport to starting position
+        this.position = this.start.copy();
+      }
+    }
+    //actually move and render node
+    PVector dirVector = new PVector((this.target.x - this.start.x), (this.target.y - this.start.y)).normalize();
+    this.position.x += dirVector.x*speed;
+    this.position.y += dirVector.y*speed;    
+  }
+
+  // rotate node 
   void spin(float speed) {
     this.position.rotate(speed);
     this.target.rotate(speed);
@@ -212,8 +272,8 @@ float getFrequency() {
 
 void keyPressed() {
   if (key == 's') {
-    saveFrame("frame#####" + ".png");
-  }  
+    saveFrame("output/final#####" + ".png");
+  }
 }
 
 void stop()
