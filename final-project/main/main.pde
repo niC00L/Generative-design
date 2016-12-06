@@ -9,8 +9,8 @@ import ddf.minim.analysis.*;
 import ddf.minim.ugens.*;
 
 Minim minim;
-//AudioPlayer in;
-AudioInput in;
+AudioPlayer in;
+//AudioInput in;
 FFT fft;
 int sampleRate = 44100;
 float [] max = new float [sampleRate/2];//array that contains the half of the sampleRate size, because FFT only reads the half of the sampleRate frequency. This array will be filled with amplitude values.
@@ -41,10 +41,10 @@ void setup()
   colorMode(HSB, 360, 100, 100);
   background(0);
 
-  minim = new Minim(this);
-  //in = minim.loadFile("song.mp3");
-  //in.play();
-  in = minim.getLineIn(Minim.STEREO, 512);
+//  minim = new Minim(this);
+  in = minim.loadFile("songs/song1.mp3");
+  in.play();
+//  in = minim.getLineIn(Minim.STEREO, 512);
   fft = new FFT(in.bufferSize(), in.sampleRate());
   
   nodesCircle = initNodeGroupsInCircle(52, 200, spectrums.length-1);
