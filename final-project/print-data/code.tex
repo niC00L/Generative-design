@@ -1,0 +1,29 @@
+\documentclass[a4paper, 10pt]{book} % velkost papiera
+\documentclass{article}
+\begin{document}
+void draw()
+{    
+  float frequency = getFrequency()[0];
+  float amplitude = getFrequency()[1]; 
+  fill(0, 10);
+  rect(0, 0, width, height);  
+  float nodeSpin = 0;
+  if (frequency < 200) {
+    nodeSpin = (float)(amplitude%30)/700;
+  } 
+  float nodeSpeed = amplitude/100;
+  float nodeWidth = amplitude/8;
+  color nodeColor = color(amplitude%360, 100, 100);
+  animateGroups(nodesCircle1, nodeColor, nodeSpeed, nodeWidth, nodeSpin, frequency);
+  animateGroups(nodesCircle2, nodeColor, nodeSpeed, nodeWidth, nodeSpin, frequency);
+}
+
+void animateGroups(ArrayList<NodesGroup> nodeGroups, color nodeColor, float nodeSpeed, float nodeWidth, float nodeSpin, float frequency) {
+  for (int i = 0; i < spectrum.length-1; i++) {
+    if (spectrum[i] < frequency && frequency < spectrum[i+1]) {
+      nodeGroups.get(i).setValues(nodeColor, nodeSpeed, nodeWidth, nodeSpin);
+    }
+    nodeGroups.get(i).render();
+  }
+} 
+\end{document}

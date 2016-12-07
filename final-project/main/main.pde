@@ -16,12 +16,12 @@ int sampleRate = 44100;
 float [] max = new float [sampleRate/2];//array that contains the half of the sampleRate size, because FFT only reads the half of the sampleRate frequency. This array will be filled with amplitude values.
 float maximum;//the maximum amplitude of the max array
 
-ArrayList<NodesGroup> nodesCircle = new ArrayList<NodesGroup>();
-ArrayList<NodesGroup> nodesCircleS = new ArrayList<NodesGroup>();
+ArrayList<NodesGroup> nodesCircle1 = new ArrayList<NodesGroup>();
+ArrayList<NodesGroup> nodesCircle2 = new ArrayList<NodesGroup>();
 ArrayList<NodesGroup> nodesLine = new ArrayList<NodesGroup>();
 
 //float [] spectrums = new float []{16, 32, 512, 2048, 8192, 16384, 32768};
-float [] spectrums = new float []{60, 230, 910, 4000, 14000};
+float [] spectrum = new float []{60, 230, 910, 4000, 14000};
 
 float rotation = 0.0;
 
@@ -47,10 +47,10 @@ void setup()
   in = minim.getLineIn(Minim.STEREO, 512);
   fft = new FFT(in.bufferSize(), in.sampleRate());
   
-  nodesCircle = initNodeGroupsInCircle(52, 200, spectrums.length-1);
-  nodesCircleS = initNodeGroupsInCircle(52, 100, spectrums.length-1);
+  nodesCircle1 = initNodeGroupsInCircle(52, 200, spectrum.length-1);
+  nodesCircle2 = initNodeGroupsInCircle(52, 100, spectrum.length-1);
 
-  nodesLine = initNodeGroupsInLines(20, 10, spectrums.length);  
+  nodesLine = initNodeGroupsInLines(20, 10, spectrum.length);  
 }
 
 ArrayList<NodesGroup> initNodeGroupsInCircle(int count, int radius, int groups) {
@@ -90,45 +90,25 @@ void draw()
 {    
   float frequency = getFrequency()[0];
   float amplitude = getFrequency()[1]; 
-
-  noStroke();
   fill(0, 10);
   rect(0, 0, width, height);  
-  pushMatrix();
-  float spin;
-  translate(width/2, height/2);    
+  float nodeSpin = 0;
   if (frequency < 200) {
-    spin = (float)(amplitude%30)/700;
-  } else {
-    spin = 0;
-  }
-  float speed = amplitude/100;
-  float wide = amplitude/8;
-  if (key == 'n') {
-    animateGroups(nodesCircle, spectrums, speed, wide, spin, frequency);
-  }
-  if (key == 'c') {
-    //animateGroups(nodesCircle, spectrums, spin, frequency);
-  } else if (key == 'l') {
-    animateGroups(nodesLine, spectrums, 0, 10, 0, frequency);
-    //} else if (key == 'b') {
-    //  animateGroups(nodesCircle, spectrums, spin, frequency);
-  } else {
-    //animateGroups(nodesLine, spectrums, 0, 10, 0, frequency);
-    animateGroups(nodesCircle, spectrums, speed, wide, spin, frequency);
-    animateGroups(nodesCircleS, spectrums, speed, wide, spin, frequency);
-    //animateGroups(nodesCircle, spectrums, 1, 10, 0, frequency);
-  }
-  popMatrix();
+    nodeSpin = (float)(amplitude%30)/700;
+  } 
+  float nodeSpeed = amplitude/100;
+  float nodeWidth = amplitude/8;
+  color nodeColor = color(amplitude%360, 100, 100);
+  animateGroups(nodesCircle1, nodeColor, nodeSpeed, nodeWidth, nodeSpin, frequency);
+  animateGroups(nodesCircle2, nodeColor, nodeSpeed, nodeWidth, nodeSpin, frequency);
 }
 
-void animateGroups(ArrayList<NodesGroup> groups, float[] spectrum, float speed, float wide, float spin, float frequency) {
-  float amplitude = fft.getFreq(frequency);  
+void animateGroups(ArrayList<NodesGroup> nodeGroups, color nodeColor, float nodeSpeed, float nodeWidth, float nodeSpin, float frequency) {
   for (int i = 0; i < spectrum.length-1; i++) {
     if (spectrum[i] < frequency && frequency < spectrum[i+1]) {
-      groups.get(i).setValues(color(amplitude%360, 100, 100), speed, wide, spin);
+      nodeGroups.get(i).setValues(nodeColor, nodeSpeed, nodeWidth, nodeSpin);
     }
-    groups.get(i).render();
+    nodeGroups.get(i).render();
   }
 } 
 
