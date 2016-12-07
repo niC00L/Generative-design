@@ -18,6 +18,7 @@ float maximum;//the maximum amplitude of the max array
 
 ArrayList<NodesGroup> nodesCircle = new ArrayList<NodesGroup>();
 ArrayList<NodesGroup> nodesCircleS = new ArrayList<NodesGroup>();
+ArrayList<NodesGroup> nodesCircleSS = new ArrayList<NodesGroup>();
 ArrayList<NodesGroup> nodesLine = new ArrayList<NodesGroup>();
 
 //float [] spectrums = new float []{16, 32, 512, 2048, 8192, 16384, 32768};
@@ -38,19 +39,20 @@ void setup()
   frameRate(30);
   int w = ceil(mm2px(a4_w, dpi));
   int h = ceil(mm2px(a4_h, dpi));
-  size(1920, 1080);
+  size(3508, 2480);
   colorMode(HSB, 360, 100, 100);
   background(0);
 
   minim = new Minim(this);
-  in = minim.loadFile("songs/song1.mp3");
+  in = minim.loadFile("songs/song4.mp3");
   in.loop();
 //  in = minim.getLineIn(Minim.STEREO, 512);
   fft = new FFT(in.bufferSize(), in.sampleRate());
   println(fft);
   
-  nodesCircle = initNodeGroupsInCircle(92, 450, spectrums.length-1);
-  nodesCircleS = initNodeGroupsInCircle(64, 220, spectrums.length-1);
+  nodesCircle = initNodeGroupsInCircle(120, 1100, spectrums.length-1);
+  nodesCircleS = initNodeGroupsInCircle(80, 680, spectrums.length-1);
+  nodesCircleSS = initNodeGroupsInCircle(40, 300, spectrums.length-1);
 
   nodesLine = initNodeGroupsInLines(20, 10, spectrums.length);  
 }
@@ -100,12 +102,12 @@ void draw()
   float spin;
   translate(width/2, height/2);    
   if (frequency < 200) {
-    spin = (float)(amplitude%30)/400;
+    spin = (float)(amplitude%30)/200;
   } else {
     spin = 0;
   }
-  float speed = amplitude/70;
-  float wide = amplitude/17;
+  float speed = amplitude/10;
+  float wide = amplitude/8;
   if (key == 'n') {
     animateGroups(nodesCircle, spectrums, speed, wide, spin, frequency);
   }
@@ -119,13 +121,14 @@ void draw()
     //animateGroups(nodesLine, spectrums, 0, 10, 0, frequency);
     animateGroups(nodesCircle, spectrums, speed, wide, spin, frequency);
     animateGroups(nodesCircleS, spectrums, speed, wide, spin, frequency);
+    animateGroups(nodesCircleSS, spectrums, speed, wide, spin, frequency);
     //animateGroups(nodesCircle, spectrums, 1, 10, 0, frequency);
   }
   popMatrix();
   
-  //if (frameCount%30 == 0) {
-    //saveFrame("output/frames/song1final#####" + ".png");
-  //}
+  if (frameCount%30 == 0) {
+    saveFrame("output/frames/toprint#####" + ".png");
+  }
 }
 
 void animateGroups(ArrayList<NodesGroup> groups, float[] spectrum, float speed, float wide, float spin, float frequency) {
