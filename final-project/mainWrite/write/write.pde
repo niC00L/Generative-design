@@ -33,10 +33,12 @@ void setup()
   frameRate(30);
 
   minim = new Minim(this);
-  in = minim.loadFile("song.mp3");
+  in = minim.loadFile("song1.mp3");
   in.play();
   //in = minim.getLineIn(Minim.STEREO, 512);
   fft = new FFT(in.bufferSize(), in.sampleRate());
+
+
 
 }
 

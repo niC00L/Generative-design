@@ -18,12 +18,12 @@ float maximum;//the maximum amplitude of the max array
 
 ArrayList<NodesGroup> nodesCircle = new ArrayList<NodesGroup>();
 ArrayList<NodesGroup> nodesCircleS = new ArrayList<NodesGroup>();
+ArrayList<NodesGroup> nodesCircleSS = new ArrayList<NodesGroup>();
+
 ArrayList<NodesGroup> nodesLine = new ArrayList<NodesGroup>();
 
 //float [] spectrums = new float []{16, 32, 512, 2048, 8192, 16384, 32768};
 float [] spectrums = new float []{60, 230, 910, 4000, 14000};
-
-float rotation = 0.0;
 
 //calculate width from milimeters
 float dpi = 300;
@@ -43,14 +43,16 @@ void setup()
   background(0);
 
   minim = new Minim(this);
-  in = minim.loadFile("songs/song1.mp3");
+  in = minim.loadFile("songs/song2.mp3");
+  //2, 8, 11
   in.loop();
 //  in = minim.getLineIn(Minim.STEREO, 512);
   fft = new FFT(in.bufferSize(), in.sampleRate());
   println(fft);
   
   nodesCircle = initNodeGroupsInCircle(92, 450, spectrums.length-1);
-  nodesCircleS = initNodeGroupsInCircle(64, 220, spectrums.length-1);
+  nodesCircleS = initNodeGroupsInCircle(64, 320, spectrums.length-1);
+  nodesCircleSS = initNodeGroupsInCircle(36, 170, spectrums.length-1);
 
   nodesLine = initNodeGroupsInLines(20, 10, spectrums.length);  
 }
@@ -119,6 +121,7 @@ void draw()
     //animateGroups(nodesLine, spectrums, 0, 10, 0, frequency);
     animateGroups(nodesCircle, spectrums, speed, wide, spin, frequency);
     animateGroups(nodesCircleS, spectrums, speed, wide, spin, frequency);
+    animateGroups(nodesCircleSS, spectrums, speed, wide, spin, frequency);
     //animateGroups(nodesCircle, spectrums, 1, 10, 0, frequency);
   }
   popMatrix();
