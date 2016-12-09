@@ -9,8 +9,8 @@ import ddf.minim.analysis.*;
 import ddf.minim.ugens.*;
 
 Minim minim;
-//AudioPlayer in;
-AudioInput in;
+AudioPlayer in;
+//AudioInput in;
 FFT fft;
 int sampleRate = 44100;
 float [] max = new float [sampleRate/2];//array that contains the half of the sampleRate size, because FFT only reads the half of the sampleRate frequency. This array will be filled with amplitude values.
@@ -18,12 +18,12 @@ float maximum;//the maximum amplitude of the max array
 
 ArrayList<NodesGroup> nodesCircle1 = new ArrayList<NodesGroup>();
 ArrayList<NodesGroup> nodesCircle2 = new ArrayList<NodesGroup>();
+ArrayList<NodesGroup> nodesCircle3 = new ArrayList<NodesGroup>();
+
 ArrayList<NodesGroup> nodesLine = new ArrayList<NodesGroup>();
 
 //float [] spectrums = new float []{16, 32, 512, 2048, 8192, 16384, 32768};
 float [] spectrum = new float []{60, 230, 910, 4000, 14000};
-
-float rotation = 0.0;
 
 //calculate width from milimeters
 float dpi = 300;
@@ -35,20 +35,24 @@ float mm2px(float mm_value, float dpi) {
 
 void setup()
 {
+  frameRate(30);
   int w = ceil(mm2px(a4_w, dpi));
   int h = ceil(mm2px(a4_h, dpi));
-  size(400, 400);
+  size(1920, 1080);
   colorMode(HSB, 360, 100, 100);
   background(0);
 
   minim = new Minim(this);
-  //in = minim.loadFile("song.mp3");
-  //in.play();
-  in = minim.getLineIn(Minim.STEREO, 512);
+  in = minim.loadFile("songs/song2.mp3");
+  //2, 8, 11
+  in.loop();
+//  in = minim.getLineIn(Minim.STEREO, 512);
   fft = new FFT(in.bufferSize(), in.sampleRate());
+  println(fft);
   
-  nodesCircle1 = initNodeGroupsInCircle(52, 200, spectrum.length-1);
-  nodesCircle2 = initNodeGroupsInCircle(52, 100, spectrum.length-1);
+  nodesCircle1 = initNodeGroupsInCircle(92, 450, spectrums.length-1);
+  nodesCircle2 = initNodeGroupsInCircle(64, 320, spectrums.length-1);
+  nodesCircle3 = initNodeGroupsInCircle(36, 170, spectrums.length-1);
 
   nodesLine = initNodeGroupsInLines(20, 10, spectrum.length);  
 }
@@ -90,7 +94,8 @@ void draw()
 {    
   float frequency = getFrequency()[0];
   float amplitude = getFrequency()[1]; 
-  fill(0, 10);
+  noStroke();
+  fill(0, 25);
   rect(0, 0, width, height);  
   float nodeSpin = 0;
   if (frequency < 200) {
@@ -101,6 +106,13 @@ void draw()
   color nodeColor = color(amplitude%360, 100, 100);
   animateGroups(nodesCircle1, nodeColor, nodeSpeed, nodeWidth, nodeSpin, frequency);
   animateGroups(nodesCircle2, nodeColor, nodeSpeed, nodeWidth, nodeSpin, frequency);
+  animateGroups(nodesCircle3, nodeColor, nodeSpeed, nodeWidth, nodeSpin, frequency);
+  popMatrix();
+  
+  //if (frameCount%30 == 0) {
+    //saveFrame("output/frames/song1final#####" + ".png");
+  //}
+
 }
 
 void animateGroups(ArrayList<NodesGroup> nodeGroups, color nodeColor, float nodeSpeed, float nodeWidth, float nodeSpin, float frequency) {

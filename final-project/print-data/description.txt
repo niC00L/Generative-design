@@ -1,4 +1,6 @@
-Generovanie podľa hudby
+
+Dancing fireflies
 
 Niekedy aj z pár náhodných riadkov kódu vznikne niečo pekné. Potom stačí pridať hudbu. 
-Obrázok pozostáva z objektov rozdelených do skupín. Každá skupina sa hýbe a mení farbu podľa iného rozsahu frekvencií. Rýchlosť pohybu a veľkosť určuje amplitúda.
+Program pozostáva z objektov rozdelených do skupín. Každá skupina sa hýbe a mení farbu podľa iného rozsahu frekvencií. Rýchlosť pohybu a veľkosť určuje amplitúda zvuku.
+
